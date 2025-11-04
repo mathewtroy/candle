@@ -16,3 +16,11 @@ export const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return clean.length > 0 && clean.length <= 70 && emailRegex.test(clean);
 };
+
+// Basic image validators for avatar/post uploads
+export const isAllowedImageType = (file) =>
+  !!file && ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'].includes(file.type);
+
+export const isAllowedImageSize = (file, maxBytes = 1 * 1024 * 1024) =>
+  !!file && file.size <= maxBytes; // default: 1MB
+
