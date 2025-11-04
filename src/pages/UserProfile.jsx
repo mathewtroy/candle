@@ -13,18 +13,22 @@ import {
   doc,
   updateDoc,
   increment,
-  getDocs
+  getDocs,
+  getDoc,
+  setDoc
 } from 'firebase/firestore';
+
 import defaultAvatar from '../assets/candle-logo.svg';
 
 export default function UserProfile() {
-  const { username } = useParams(); // example: qwerty22
+  const { username } = useParams();
   const [postContent, setPostContent] = useState('');
   const [posts, setPosts] = useState([]);
   const [profileUserId, setProfileUserId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userLikes, setUserLikes] = useState({}); // store liked post IDs for current user
 
-  // 🔹 Step 1: Find UID by username
+  // 🔹 Fetch user UID by username
   useEffect(() => {
     const fetchUserId = async () => {
       try {
@@ -37,7 +41,7 @@ export default function UserProfile() {
         if (userDoc) {
           console.log('✅ Found user:', userDoc.data().username);
           console.log('✅ UID:', userDoc.id);
-          setProfileUserId(userDoc.id); // here id = uid
+          setProfileUserId(userDoc.id);
         } else {
           console.warn('⚠️ No such user found for username:', username);
           setProfileUserId(null);
@@ -52,7 +56,7 @@ export default function UserProfile() {
     fetchUserId();
   }, [username]);
 
-  // 🔹 Step 2: Subscribe to posts by authorId
+  // 🔹 Subscribe to posts of this user
   useEffect(() => {
     if (!profileUserId) {
       console.log('⏳ Waiting for profileUserId...');
@@ -69,11 +73,24 @@ export default function UserProfile() {
 
     const unsubscribe = onSnapshot(
       q,
-      (snapshot) => {
+      async (snapshot) => {
         const fetchedPosts = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+
+        // Check which posts current user has liked
+        if (auth.currentUser) {
+          const userId = auth.currentUser.uid;
+          const likesData = {};
+          for (const post of fetchedPosts) {
+            const likeRef = doc(db, 'posts', post.id, 'likes', userId);
+            const likeSnap = await getDoc(likeRef);
+            likesData[post.id] = likeSnap.exists();
+          }
+          setUserLikes(likesData);
+        }
+
         console.log('🕯️ Posts loaded:', fetchedPosts.length);
         setPosts(fetchedPosts);
       },
@@ -92,7 +109,7 @@ export default function UserProfile() {
     }
   }, [profileUserId]);
 
-  // 🔹 Step 3: Create post
+  // 🔹 Create new post
   const handleCreatePost = async () => {
     if (!auth.currentUser) {
       alert('You must be logged in to create a post.');
@@ -127,10 +144,37 @@ export default function UserProfile() {
     await deleteDoc(doc(db, 'posts', postId));
   };
 
-  // 🔹 Like post
+  // 🔹 Like / Unlike post (anti-spam system)
   const handleLike = async (postId) => {
+    if (!auth.currentUser) {
+      alert('You must be logged in to like posts.');
+      return;
+    }
+
+    const userId = auth.currentUser.uid;
+    const likeRef = doc(db, 'posts', postId, 'likes', userId);
     const postRef = doc(db, 'posts', postId);
-    await updateDoc(postRef, { likes: increment(1) });
+
+    try {
+      const likeSnap = await getDoc(likeRef);
+
+      if (likeSnap.exists()) {
+        // 💔 Unlike
+        await deleteDoc(likeRef);
+        await updateDoc(postRef, { likes: increment(-1) });
+        setUserLikes((prev) => ({ ...prev, [postId]: false }));
+      } else {
+        // ❤️ Like
+        await setDoc(likeRef, {
+          userId,
+          createdAt: new Date(),
+        });
+        await updateDoc(postRef, { likes: increment(1) });
+        setUserLikes((prev) => ({ ...prev, [postId]: true }));
+      }
+    } catch (err) {
+      console.error('Error updating like:', err);
+    }
   };
 
   return (
@@ -172,9 +216,19 @@ export default function UserProfile() {
               </div>
               <p className="post-content">{post.content}</p>
               <div className="post-actions">
-                <button onClick={() => handleLike(post.id)}>❤️ {post.likes || 0}</button>
+                <button
+                  onClick={() => handleLike(post.id)}
+                  style={{
+                    color: userLikes[post.id] ? 'red' : 'white',
+                    fontWeight: userLikes[post.id] ? 'bold' : 'normal',
+                  }}
+                >
+                  ❤️ {post.likes || 0}
+                </button>
                 {auth.currentUser?.uid === post.authorId && (
-                  <button onClick={() => handleDelete(post.id, post.authorId)}>🗑️ Delete</button>
+                  <button onClick={() => handleDelete(post.id, post.authorId)}>
+                    🗑️ Delete
+                  </button>
                 )}
               </div>
             </div>
