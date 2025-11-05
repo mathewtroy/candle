@@ -21,7 +21,7 @@ export default function Navbar() {
       {/* Logo and main title */}
       <Link to="/" className="navbar-logo">
         <img src={logo} alt="Candly Logo" />
-        <span>CANDLY1</span>
+        <span>CANDLY</span>
       </Link>
 
       {/* If user is not logged in */}
