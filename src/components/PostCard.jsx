@@ -1,11 +1,29 @@
+import { useEffect, useState } from "react";
+import { auth, db } from "../firebase/config";
+import { doc, onSnapshot } from "firebase/firestore";
 import defaultAvatar from "../assets/candle-logo.svg";
 import candleIcon from "../assets/candle-icon.svg";
 import candleRedIcon from "../assets/candle-red-icon.svg";
-import { auth } from "../firebase/config";
 
 export default function PostCard({ post, onLike, onDelete, liked }) {
   const isAuthor = auth.currentUser?.uid === post.authorId;
-  const avatar = post.photoURL || defaultAvatar;
+  const [avatar, setAvatar] = useState(defaultAvatar);
+
+  // Subscribe to real-time avatar updates
+  useEffect(() => {
+    const userRef = doc(db, "users", post.authorId);
+    const unsubscribe = onSnapshot(userRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        setAvatar(data.photoURL || defaultAvatar);
+      } else {
+        setAvatar(defaultAvatar);
+      }
+    });
+
+    // cleanup subscription
+    return () => unsubscribe();
+  }, [post.authorId]);
 
   return (
     <div className="post-card">
@@ -24,7 +42,6 @@ export default function PostCard({ post, onLike, onDelete, liked }) {
       <p className="post-content">{post.content}</p>
 
       <div className="post-actions">
-        {/* 🕯️ Candle Like Button */}
         <button
           className={`like-button ${liked ? "liked" : ""}`}
           onClick={() => onLike(post.id)}

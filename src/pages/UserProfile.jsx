@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebase/config";
 import { getDocs, query, collection, where, limit } from "firebase/firestore";
-import { useUserPosts } from "../firebase/useUserPosts";
+import { useUserPosts } from "../hooks/useUserPosts";
 import PostCard from "../components/PostCard";
 import AvatarUploader from "../components/AvatarUploader";
 import Loader from "../components/Loader";

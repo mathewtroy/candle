@@ -35,6 +35,11 @@
   cursor: pointer;
   padding: 4px;
   transition: 0.2s;
+
+  display: block;
+  margin: 2px auto;
+  text-align: center;
+
 }
 
 .search-button:hover {

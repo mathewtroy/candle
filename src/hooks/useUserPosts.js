@@ -16,7 +16,7 @@ import {
   setDoc,
   limit,
 } from 'firebase/firestore';
-import { auth, db } from './config';
+import { auth, db } from '../firebase/config';
 
 // Hook for managing user posts
 export function useUserPosts(username, postContent, setPostContent) {
@@ -93,16 +93,16 @@ export function useUserPosts(username, postContent, setPostContent) {
     }
 
     try {
-      const { uid, displayName, photoURL } = auth.currentUser;
+      const { uid, displayName } = auth.currentUser;
 
-      await addDoc(collection(db, 'posts'), {
-        authorId: uid,
-        username: displayName || 'user',
-        photoURL: photoURL || '', // added avatar support
-        content: postContent.trim(),
-        createdAt: serverTimestamp(),
-        likes: 0,
-      });
+    await addDoc(collection(db, 'posts'), {
+      authorId: uid,
+      username: displayName || 'user',
+      content: postContent.trim(),
+      createdAt: serverTimestamp(),
+      likes: 0,
+    });
+
 
       setPostContent('');
     } catch (err) {
