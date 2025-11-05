@@ -24,3 +24,6 @@ yarn-error.log*
 
 .env
 .env.*
+
+# Firebase local cache
+.firebase/
