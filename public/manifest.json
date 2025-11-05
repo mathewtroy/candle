@@ -3,28 +3,35 @@
   "name": "Candly Virtual Candles",
   "icons": [
     {
-      "src": "candle-logo.svg",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
     },
     {
-      "src": "candle-logo.svg",
-      "type": "image/png",
-      "sizes": "192x192"
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
     },
     {
-      "src": "candle-logo.svg",
-      "type": "image/png",
-      "sizes": "512x512"
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
-      "src": "candle-logo.svg",
-      "type": "image/svg+xml",
-      "sizes": "any"
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
     }
   ],
   "start_url": ".",
   "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
   "theme_color": "#000000",
-  "background_color": "#000000"
+  "description": "Light your own digital candle and connect with others in Candly ✨"
 }

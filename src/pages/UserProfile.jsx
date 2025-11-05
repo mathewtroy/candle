@@ -1,35 +1,91 @@
-import { useParams } from 'react-router-dom';
-import { useState } from 'react';
-import { auth } from '../firebase/config';
-import { useUserPosts } from '../firebase/useUserPosts';
-import PostCard from '../components/PostCard';
+import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { auth, db } from "../firebase/config";
+import { getDocs, query, collection, where, limit } from "firebase/firestore";
+import { useUserPosts } from "../hooks/useUserPosts";
+import PostCard from "../components/PostCard";
+import AvatarUploader from "../components/AvatarUploader";
+import Loader from "../components/Loader";
+import "../index.css";
 
 export default function UserProfile() {
   const { username } = useParams();
-  const [postContent, setPostContent] = useState('');
+  const navigate = useNavigate();
 
-  // Custom hook handles all Firestore logic
-  const {
-    posts,
-    loading,
-    handleCreatePost,
-    handleDelete,
-    handleLike,
-    userLikes,
-  } = useUserPosts(username, postContent, setPostContent);
+  const [userData, setUserData] = useState(null);
+  const [postContent, setPostContent] = useState("");
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
+  // Fetch user profile by username
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoadingProfile(true);
+      setUserData(null);
+      try {
+        const q = query(
+          collection(db, "users"),
+          where("username", "==", username),
+          limit(1)
+        );
+        const snap = await getDocs(q);
+
+        if (!snap.empty) {
+          setUserData({ id: snap.docs[0].id, ...snap.docs[0].data() });
+        } else {
+          // Navigate to 404 if user not found
+          navigate("/404", { replace: true });
+        }
+      } catch (err) {
+        console.error("Error loading user profile:", err);
+        navigate("/404", { replace: true });
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    fetchProfile();
+  }, [username, navigate]);
+
+  // Posts logic
+  const { posts, loading, handleCreatePost, handleDelete, handleLike, userLikes } =
+    useUserPosts(username, postContent, setPostContent);
+
+  // Only owner can upload/change avatar or create posts
+  const isOwner = auth.currentUser?.displayName === username;
+
+  if (loadingProfile) return <Loader text="Loading profile..." />;
+  if (!userData) return null; // prevent rendering old state
 
   return (
     <div className="container">
-      <h2>{username}'s Profile</h2>
-      <p>This is a public page for viewing and placing candles.</p>
+      <div className="profile-header">
+        {isOwner ? (
+          <AvatarUploader
+            currentPhoto={userData.photoURL}
+            onPhotoChange={(url) =>
+              setUserData((prev) => ({ ...prev, photoURL: url }))
+            }
+          />
+        ) : (
+          <img
+            src={userData.photoURL || "/default-avatar.png"}
+            alt="User Avatar"
+            className="profile-avatar"
+          />
+        )}
 
-      {auth.currentUser?.displayName === username && (
+        <h2>{username}</h2>
+        <p className="profile-subtitle">Public profile</p>
+      </div>
+
+      {/* Post creation visible only to profile owner */}
+      {isOwner && (
         <div className="post-create">
           <textarea
-            placeholder="Write a post..."
+            placeholder="Write something..."
             value={postContent}
             onChange={(e) => setPostContent(e.target.value)}
-            rows={4}
+            rows={3}
           />
           <button onClick={handleCreatePost}>Create Post</button>
         </div>
@@ -38,9 +94,9 @@ export default function UserProfile() {
       <div className="posts-section">
         <h3>🕯️ Posts</h3>
         {loading ? (
-          <p>Loading posts...</p>
+          <Loader text="Loading posts..." />
         ) : posts.length === 0 ? (
-          <p>No posts yet...</p>
+          <p>No posts yet.</p>
         ) : (
           posts.map((post) => (
             <PostCard

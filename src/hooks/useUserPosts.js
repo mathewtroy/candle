@@ -14,25 +14,29 @@ import {
   getDocs,
   getDoc,
   setDoc,
+  limit,
 } from 'firebase/firestore';
-import { auth, db } from './config';
+import { auth, db } from '../firebase/config';
 
-// Custom hook for user posts (fetch, create, like, delete)
+// Hook for managing user posts
 export function useUserPosts(username, postContent, setPostContent) {
   const [posts, setPosts] = useState([]);
   const [profileUserId, setProfileUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userLikes, setUserLikes] = useState({});
 
-  // Fetch user UID by username
+  // Fetch UID by username
   useEffect(() => {
     const fetchUserId = async () => {
       try {
-        const usersSnap = await getDocs(collection(db, 'users'));
-        const userDoc = usersSnap.docs.find(
-          (doc) => doc.data().username === username
-        );
-        if (userDoc) setProfileUserId(userDoc.id);
+        const q = query(collection(db, 'users'), where('username', '==', username), limit(1));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          setProfileUserId(snap.docs[0].id);
+        } else {
+          console.warn('No user found for username:', username);
+          setProfileUserId(null);
+        }
       } catch (err) {
         console.error('Error fetching user id:', err);
       } finally {
@@ -58,15 +62,16 @@ export function useUserPosts(username, postContent, setPostContent) {
         ...doc.data(),
       }));
 
+      // Track likes for current user
       if (auth.currentUser) {
         const userId = auth.currentUser.uid;
-        const likesData = {};
+        const likesMap = {};
         for (const post of fetchedPosts) {
           const likeRef = doc(db, 'posts', post.id, 'likes', userId);
           const likeSnap = await getDoc(likeRef);
-          likesData[post.id] = likeSnap.exists();
+          likesMap[post.id] = likeSnap.exists();
         }
-        setUserLikes(likesData);
+        setUserLikes(likesMap);
       }
 
       setPosts(fetchedPosts);
@@ -75,7 +80,7 @@ export function useUserPosts(username, postContent, setPostContent) {
     return () => unsubscribe();
   }, [profileUserId]);
 
-  // Create new post
+  // Create a new post
   const handleCreatePost = async () => {
     if (!auth.currentUser) {
       alert('You must be logged in to create a post.');
@@ -88,13 +93,17 @@ export function useUserPosts(username, postContent, setPostContent) {
     }
 
     try {
-      await addDoc(collection(db, 'posts'), {
-        authorId: auth.currentUser.uid,
-        username: auth.currentUser.displayName || 'user',
-        content: postContent.trim(),
-        createdAt: serverTimestamp(),
-        likes: 0,
-      });
+      const { uid, displayName } = auth.currentUser;
+
+    await addDoc(collection(db, 'posts'), {
+      authorId: uid,
+      username: displayName || 'user',
+      content: postContent.trim(),
+      createdAt: serverTimestamp(),
+      likes: 0,
+    });
+
+
       setPostContent('');
     } catch (err) {
       alert('Error creating post: ' + err.message);
@@ -107,7 +116,11 @@ export function useUserPosts(username, postContent, setPostContent) {
       alert('You can only delete your own posts.');
       return;
     }
-    await deleteDoc(doc(db, 'posts', postId));
+    try {
+      await deleteDoc(doc(db, 'posts', postId));
+    } catch (err) {
+      console.error('Error deleting post:', err);
+    }
   };
 
   // Like / Unlike post (anti-spam)
@@ -125,10 +138,12 @@ export function useUserPosts(username, postContent, setPostContent) {
       const likeSnap = await getDoc(likeRef);
 
       if (likeSnap.exists()) {
+        // remove like
         await deleteDoc(likeRef);
         await updateDoc(postRef, { likes: increment(-1) });
         setUserLikes((prev) => ({ ...prev, [postId]: false }));
       } else {
+        // add like
         await setDoc(likeRef, { userId, createdAt: new Date() });
         await updateDoc(postRef, { likes: increment(1) });
         setUserLikes((prev) => ({ ...prev, [postId]: true }));

@@ -1,0 +1,42 @@
+.like-button {
+  background: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: transform 0.15s ease, color 0.2s ease;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.like-button:hover {
+  transform: scale(1.07);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.candle-icon {
+  width: 22px;
+  height: 22px;
+  margin-right: 6px;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.like-button.liked {
+  background-color: rgba(255, 80, 80, 0.15);
+  color: #ff5555;
+  box-shadow: 0 0 10px rgba(255, 80, 80, 0.3);
+}
+
+.like-button.liked .candle-icon {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 6px #ff4444);
+}
+
+.like-button span {
+  transition: color 0.2s ease;
+}

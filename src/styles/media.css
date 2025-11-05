@@ -1,0 +1,92 @@
+@media (max-width: 480px) {
+  .container {
+    width: 90%;
+    margin: 20px auto;
+    padding: 15px;
+  }
+
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  .navbar-logo {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+
+  .navbar-search {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .navbar-search input {
+    width: 100%;
+  }
+
+  .suggestions-box {
+    width: 100%;
+  }
+
+  .post-card {
+    padding: 10px;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  textarea {
+    font-size: 0.9rem;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    width: 85%;
+  }
+
+  .navbar {
+    flex-wrap: wrap;
+  }
+
+  .navbar-right {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .post-card {
+    padding: 12px;
+  }
+
+  .post-content {
+    font-size: 0.95rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 800px;
+  }
+
+  .navbar {
+    padding: 15px 40px;
+  }
+
+  .post-card {
+    padding: 20px;
+  }
+
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+  }
+}
