@@ -1,70 +1,120 @@
-# Getting Started with Create React App
+# 🕯️ Candly App |	React, Firebase, Cloudinary
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**Author:** Aleksandr Kross <br>
+**GitHub:** https://github.com/mathewtroy/candle <br>
+**Website:** https://candly-krossi.web.app <br>
+:email: **[For questions, reach out here](mailto:krossale@fel.czut.cz)**
 
-## Available Scripts
+## 📖 Project Description
+Candly is a social web application where users can 'light candles' - share short posts of inspiration or support. Other users can show appreciation by lighting a candle (like). Each user has their own profile page, and an admin panel allows moderation.
 
-In the project directory, you can run:
+## 🎯 Project Idea
+Each user has a personal wall with their own posts. They can:
+- Register and log in (Firebase Authentication)
+- Create posts
+- Like posts from others (light a candle)
+- Search for other users
+- Access the admin panel if they have the admin role
 
-### `npm start`
+## ⚙️ Technologies
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+| **Category** | **Technologies** |
+|---------------|------------------|
+| **Frontend** | React 19, React Router DOM v7 |
+| **Backend / Database** | Firebase Authentication, Cloud Firestore |
+| **Storage & Media** | Cloudinary (avatar upload & compression) |
+| **UI / Styling** | CSS + animate.css |
+| **Hosting** | Firebase Hosting |
+| **Dev Tools** | ESLint, npm, GitHub |
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🧩 Project Structure of CANDLY
 
-### `npm test`
+**public/**		   Public assets (favicon, manifest) <br>
+**src/**		     Source directory <br>
+**assets/**	     Icons and images <br>
+**components/**	 Reusable React components <br>
+**context/**	   Global Context (Auth) <br>
+**firebase/**	   Firebase initialization <br>
+**hooks/**		   Custom React hooks <br>
+**layouts/**	   Layout templates <br>
+**pages/**		   Main pages (Home, Profile, Admin) <br>
+**styles/**		   CSS files <br>
+**App.jsx**		   Router and app entry <br>
+**index.js**		 ReactDOM entry <br>
+**Index.css**	   main CSS <br>
+**.env**		         Firebase and Cloudinary keys <br>
+**firebase.json**	   Firebase Hosting config <br>
+**firestore.rules**	 Firestore security rules <br>
+**package.json**	   Dependencies <br>
+**README.md**        Documentation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🚀 How to Run the Project
+1️⃣ **Clone the repository:** <br>
+`git clone https://github.com/mathewtroy/candle.git` <br>
+`cd candle`
 
-### `npm run build`
+2️⃣ **Install dependencies:** <br>
+`npm install`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3️⃣ **Create a** `.env` **file and add Firebase + Cloudinary keys:** <br>
+```bash
+REACT_APP_FIREBASE_API_KEY=your_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=your_project
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+REACT_APP_FIREBASE_APP_ID=your_app_id
+REACT_APP_CLOUDINARY_CLOUD=your_cloud_name
+REACT_APP_CLOUDINARY_PRESET=your_upload_preset
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4️⃣ **Run the app locally:**
+`npm start` <br>
+**Visit** http://localhost:3000
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## ☁️ Firebase Hosting Deployment
+1️⃣  **Install Firebase CLI:** <br>
+`npm install -g firebase-tools`
 
-### `npm run eject`
+2️⃣  **Log in to Firebase:** <br>
+`firebase login`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3️⃣  **Build the project:** <br>
+`npm run build`
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+4️⃣  **Deploy:** <br>
+`firebase deploy --only hosting`
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+**App will be available at** https://candly-krossi.web.app 
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🔐 Firestore Rules
+```bash
+rules_version = '2';  <
+service cloud.firestore {  
+  match /databases/{database}/documents {  
+    match /users/{userId} {  
+      allow read: if true;  
+      allow write: if request.auth != null && request.auth.uid == userId;  
+    }  <br>
+    match /posts/{postId} {  
+      allow read: if true;  
+      allow create: if request.auth != null;  
+      allow update: if request.auth != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);  
+      allow delete: if request.auth != null && request.auth.uid == resource.data.authorId;  
+    } 
+  }  
+}
+```
 
-## Learn More
+## 💡 Future Features
+- Comment system under posts
+- Dark mode theme
+- Enhanced search (by posts and tags)
+- PWA offline support
+- Admin analytics dashboard
+- 
+## 🧠 Project Purpose
+Candly is a social web application built with React and Firebase. 
+It showcases modern frontend and backend integration and offers a minimalistic yet meaningful experience - sharing light and kindness through virtual candles.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+© 2025 Aleksandr Kross
