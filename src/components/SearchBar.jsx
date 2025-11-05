@@ -49,7 +49,7 @@ export default function SearchBar() {
         const usersRef = collection(db, "users");
         const q = query(
           usersRef,
-          orderBy("username"),
+          orderBy("usernameLower"),
           startAt(debouncedSearch.toLowerCase()),
           endAt(debouncedSearch.toLowerCase() + "\uf8ff"),
           limit(5)
@@ -75,7 +75,7 @@ export default function SearchBar() {
     try {
       const q = query(
         collection(db, "users"),
-        where("username", "==", username),
+        where("usernameLower", "==", username.toLowerCase()),
         limit(1)
       );
       const snap = await getDocs(q);

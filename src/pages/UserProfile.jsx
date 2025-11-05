@@ -19,6 +19,8 @@ export default function UserProfile() {
   // Fetch user profile by username
   useEffect(() => {
     const fetchProfile = async () => {
+      setLoadingProfile(true);
+      setUserData(null);
       try {
         const q = query(
           collection(db, "users"),
@@ -30,11 +32,12 @@ export default function UserProfile() {
         if (!snap.empty) {
           setUserData({ id: snap.docs[0].id, ...snap.docs[0].data() });
         } else {
-          navigate("/404");
+          // Navigate to 404 if user not found
+          navigate("/404", { replace: true });
         }
       } catch (err) {
         console.error("Error loading user profile:", err);
-        navigate("/404");
+        navigate("/404", { replace: true });
       } finally {
         setLoadingProfile(false);
       }
@@ -47,22 +50,35 @@ export default function UserProfile() {
   const { posts, loading, handleCreatePost, handleDelete, handleLike, userLikes } =
     useUserPosts(username, postContent, setPostContent);
 
+  // Only owner can upload/change avatar or create posts
   const isOwner = auth.currentUser?.displayName === username;
 
   if (loadingProfile) return <Loader text="Loading profile..." />;
-  if (!userData) return <p className="text-center text-error">User not found.</p>;
+  if (!userData) return null; // prevent rendering old state
 
   return (
     <div className="container">
       <div className="profile-header">
-        <AvatarUploader
-          currentPhoto={userData.photoURL}
-          onPhotoChange={(url) => setUserData((prev) => ({ ...prev, photoURL: url }))}
-        />
+        {isOwner ? (
+          <AvatarUploader
+            currentPhoto={userData.photoURL}
+            onPhotoChange={(url) =>
+              setUserData((prev) => ({ ...prev, photoURL: url }))
+            }
+          />
+        ) : (
+          <img
+            src={userData.photoURL || "/default-avatar.png"}
+            alt="User Avatar"
+            className="profile-avatar"
+          />
+        )}
+
         <h2>{username}</h2>
         <p className="profile-subtitle">Public profile</p>
       </div>
 
+      {/* Post creation visible only to profile owner */}
       {isOwner && (
         <div className="post-create">
           <textarea
