@@ -1,0 +1,63 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Read user's own role from Firestore (safe для правил)
+    function isAdmin() {
+      return signedIn() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // Allow owner update but forbid them to change 'role'.
+    function ownerUpdateWithoutRoleChange(userId) {
+      return isOwner(userId) &&
+             !request.resource.data.diff(resource.data).changedKeys().hasAny(['role']);
+    }
+
+    // USERS
+    match /users/{userId} {
+      // Anyone can read profiles
+      allow read: if true;
+
+      // Only the authenticated user can create their own profile (role всегда "user" на старте)
+      allow create: if isOwner(userId)
+                    && request.resource.data.role == "user";
+
+      // Update/delete: owner (без изменения role) ИЛИ admin
+      allow update, delete: if ownerUpdateWithoutRoleChange(userId) || isAdmin();
+    }
+
+    // POSTS
+    match /posts/{postId} {
+      // Public read
+      allow read: if true;
+
+      // Only signed-in users can create
+      allow create: if signedIn();
+
+      // Only "likes" can be updated by users; admin может всё (например модерация)
+      allow update: if ( signedIn()
+                         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']) )
+                    || isAdmin();
+
+      // Delete: author OR admin
+      allow delete: if ( signedIn() && request.auth.uid == resource.data.authorId )
+                    || isAdmin();
+
+      // LIKES subcollection — 1 лайк на юзера, снимаем/ставим по uid
+      match /likes/{likeId} {
+        allow read: if true;
+        allow create, delete: if signedIn() && request.auth.uid == likeId;
+      }
+    }
+  }
+}

@@ -5,7 +5,6 @@
   "description": "Candly — Virtual Candle Social App built with React, Firebase, and Cloudinary. Users can light digital candles, share posts, and connect with others.",
   "author": "Aleksandr Kross <krossale@fel.cvut.cz>",
   "license": "MIT",
-  "homepage": "https://github.com/mathewtroy/candle",
   "repository": {
     "type": "git",
     "url": "https://github.com/mathewtroy/candle.git"
