@@ -1,3 +1,11 @@
-# https://www.robotstxt.org/robotstxt.html
+# robots.txt for Candly App
 User-agent: *
-Disallow:
+Allow: /
+
+# Prevent bots from indexing admin or private routes
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+
+# Sitemap (if I will add it)
+# Sitemap: https://yourdomain.com/sitemap.xml
